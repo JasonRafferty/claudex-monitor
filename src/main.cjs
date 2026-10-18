@@ -83,6 +83,7 @@ function updateTrayTooltip() {
 ipcMain.handle("monitor:get-state", () => state);
 ipcMain.handle("monitor:refresh", () => poll().then(() => state));
 ipcMain.handle("monitor:get-settings", () => settings);
+ipcMain.handle("monitor:open-menu", () => buildMenu().popup({ window }));
 ipcMain.handle("monitor:set-always-on-top", (_event, enabled) => {
   settings.alwaysOnTop = Boolean(enabled);
   saveSettings();
@@ -103,8 +104,9 @@ function toggleWidget() {
 
 const iconPath = path.join(__dirname, "..", "assets", "icon.png");
 
-function rebuildTrayMenu() {
-  tray?.setContextMenu(Menu.buildFromTemplate([
+// One menu serves the tray and the widget's ⋯ button, since WSLg shows no tray icon.
+function buildMenu() {
+  return Menu.buildFromTemplate([
     { label: "Show Claudex Monitor", click: showWidget },
     { label: "Refresh now", click: () => void poll() },
     {
@@ -133,7 +135,11 @@ function rebuildTrayMenu() {
     },
     { type: "separator" },
     { label: "Quit", click: () => { quitting = true; app.quit(); } }
-  ]));
+  ]);
+}
+
+function rebuildTrayMenu() {
+  tray?.setContextMenu(buildMenu());
 }
 
 function createWidget() {

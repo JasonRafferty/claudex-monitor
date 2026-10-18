@@ -4,7 +4,8 @@ let latest = null;
 const els = {
   led: document.getElementById("led"),
   pin: document.getElementById("pin"),
-  refresh: document.getElementById("refresh-now")
+  refresh: document.getElementById("refresh-now"),
+  menu: document.getElementById("menu")
 };
 
 function formatDuration(ms) {
@@ -125,6 +126,7 @@ async function init() {
   els.pin.addEventListener("click", async () => {
     setPinned(await bridge.setAlwaysOnTop(els.pin.getAttribute("aria-pressed") !== "true"));
   });
+  els.menu.addEventListener("click", () => void bridge.openMenu());
   els.refresh.addEventListener("click", async () => {
     els.refresh.classList.add("spinning");
     try {
