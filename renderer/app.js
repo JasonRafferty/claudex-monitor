@@ -1,4 +1,4 @@
-const bridge = window.tandem;
+const bridge = window.claudexMonitor;
 let latest = null;
 
 const els = {

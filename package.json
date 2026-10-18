@@ -1,5 +1,5 @@
 {
-  "name": "tandem",
+  "name": "claudex-monitor",
   "version": "0.1.0",
   "description": "Desktop widget showing Claude Code and Codex quota usage side by side.",
   "private": true,

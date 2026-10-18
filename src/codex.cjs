@@ -4,7 +4,7 @@ const readline = require("node:readline");
 const TIMEOUT_MS = 20_000;
 
 function codexCommand(env = process.env) {
-  return env.TANDEM_CODEX_PATH || env.CODEX_BIN || "codex";
+  return env.CLAUDEX_CODEX_PATH || env.CODEX_BIN || "codex";
 }
 
 function parseCodexUsage(result) {
@@ -82,7 +82,7 @@ function fetchCodexUsage(command = codexCommand()) {
       id: 1,
       method: "initialize",
       params: {
-        clientInfo: { name: "tandem", title: "Tandem", version: "0.1.0" },
+        clientInfo: { name: "claudex-monitor", title: "Claudex Monitor", version: "0.1.0" },
         capabilities: { experimentalApi: true }
       }
     });

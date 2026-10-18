@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("tandem", {
+contextBridge.exposeInMainWorld("claudexMonitor", {
   getState: () => ipcRenderer.invoke("monitor:get-state"),
   refresh: () => ipcRenderer.invoke("monitor:refresh"),
   getSettings: () => ipcRenderer.invoke("monitor:get-settings"),

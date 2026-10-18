@@ -127,7 +127,7 @@ function trayIcon() {
 
 function rebuildTrayMenu() {
   tray?.setContextMenu(Menu.buildFromTemplate([
-    { label: "Show Tandem", click: showWidget },
+    { label: "Show Claudex Monitor", click: showWidget },
     { label: "Refresh now", click: () => void poll() },
     {
       label: "Always on top",
@@ -154,7 +154,7 @@ function createWidget() {
     frame: false,
     transparent: true,
     hasShadow: true,
-    title: "Tandem",
+    title: "Claudex Monitor",
     alwaysOnTop: settings.alwaysOnTop,
     autoHideMenuBar: true,
     backgroundColor: "#00000000",
@@ -174,7 +174,7 @@ function createWidget() {
   });
 
   tray = new Tray(trayIcon());
-  tray.setToolTip("Tandem");
+  tray.setToolTip("Claudex Monitor");
   tray.on("click", showWidget);
   rebuildTrayMenu();
   globalShortcut.register("CommandOrControl+Alt+M", toggleWidget);
