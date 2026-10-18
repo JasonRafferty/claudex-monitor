@@ -73,6 +73,75 @@ html, body {
 .ctl:focus-visible { outline: 2px solid rgba(255, 255, 255, .5); outline-offset: 2px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ---------- Refresh interval dropdown ---------- */
+
+.picker { position: relative; }
+
+.pill {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  padding: 0 6px 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .06);
+  color: #dcdce2;
+  font: inherit;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: .7;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.pill:hover, .pill[aria-expanded="true"] { background: rgba(255, 255, 255, .15); opacity: 1; }
+.pill svg { width: 12px; height: 12px; transition: transform .2s; }
+.pill[aria-expanded="true"] svg { transform: rotate(180deg); }
+.pill:focus-visible { outline: 2px solid rgba(255, 255, 255, .5); outline-offset: 2px; }
+
+.dropdown {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  min-width: 140px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border-radius: 12px;
+  background: rgba(30, 30, 34, .97);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, .55),
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    inset 0 0 0 1px rgba(255, 255, 255, .06);
+  animation: drop .14s ease-out;
+}
+.dropdown[hidden] { display: none; }
+.dropdown li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+  outline: none;
+}
+.dropdown li:hover, .dropdown li:focus { background: rgba(255, 255, 255, .08); }
+.dropdown li[aria-selected="true"] { font-weight: 600; }
+.dropdown li[aria-selected="true"]::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--codex);
+  box-shadow: 0 0 6px var(--codex);
+}
+@keyframes drop { from { opacity: 0; transform: translateY(-4px); } }
+
 /* ---------- Providers ---------- */
 
 .claude { --accent: var(--claude); }

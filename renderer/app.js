@@ -5,8 +5,71 @@ const els = {
   led: document.getElementById("led"),
   pin: document.getElementById("pin"),
   refresh: document.getElementById("refresh-now"),
-  menu: document.getElementById("menu")
+  interval: document.getElementById("interval"),
+  intervalValue: document.getElementById("interval-value"),
+  intervalList: document.getElementById("interval-list")
 };
+
+function formatInterval(seconds) {
+  return seconds < 60 ? `${seconds}s` : `${seconds / 60}m`;
+}
+
+function intervalName(seconds) {
+  return seconds < 60 ? `Every ${seconds} seconds` : seconds === 60 ? "Every minute" : `Every ${seconds / 60} minutes`;
+}
+
+// ---------- Refresh interval dropdown ----------
+
+function showInterval(seconds) {
+  els.intervalValue.textContent = formatInterval(seconds);
+  for (const option of els.intervalList.children) {
+    option.setAttribute("aria-selected", String(Number(option.dataset.seconds) === seconds));
+  }
+}
+
+function setDropdownOpen(open) {
+  els.intervalList.hidden = !open;
+  els.interval.setAttribute("aria-expanded", String(open));
+  if (open) (els.intervalList.querySelector('[aria-selected="true"]') ?? els.intervalList.firstElementChild).focus();
+}
+
+function buildIntervalList(options) {
+  els.intervalList.replaceChildren(...options.map((seconds) => {
+    const option = document.createElement("li");
+    option.role = "option";
+    option.tabIndex = -1;
+    option.dataset.seconds = String(seconds);
+    option.textContent = intervalName(seconds);
+    return option;
+  }));
+
+  els.interval.addEventListener("click", () => setDropdownOpen(els.intervalList.hidden));
+  els.intervalList.addEventListener("click", async (event) => {
+    const option = event.target.closest("li");
+    if (!option) return;
+    setDropdownOpen(false);
+    showInterval(await bridge.setRefresh(Number(option.dataset.seconds)));
+    els.interval.focus();
+  });
+  els.intervalList.addEventListener("keydown", (event) => {
+    const items = [...els.intervalList.children];
+    const index = items.indexOf(document.activeElement);
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
+    } else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      document.activeElement.click();
+    } else if (event.key === "Escape") {
+      setDropdownOpen(false);
+      els.interval.focus();
+    }
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!event.target.closest(".picker")) setDropdownOpen(false);
+  });
+  window.addEventListener("blur", () => setDropdownOpen(false));
+}
 
 function formatDuration(ms) {
   const totalMinutes = Math.max(0, Math.ceil(ms / 60_000));
@@ -121,12 +184,14 @@ function setPinned(enabled) {
 }
 
 async function init() {
-  setPinned((await bridge.getSettings()).alwaysOnTop);
+  const settings = await bridge.getSettings();
+  setPinned(settings.alwaysOnTop);
+  buildIntervalList(settings.refreshOptions);
+  showInterval(settings.refreshSeconds);
 
   els.pin.addEventListener("click", async () => {
     setPinned(await bridge.setAlwaysOnTop(els.pin.getAttribute("aria-pressed") !== "true"));
   });
-  els.menu.addEventListener("click", () => void bridge.openMenu());
   els.refresh.addEventListener("click", async () => {
     els.refresh.classList.add("spinning");
     try {
@@ -138,6 +203,7 @@ async function init() {
 
   bridge.onUpdate(update);
   bridge.onAlwaysOnTop(setPinned);
+  bridge.onRefreshInterval(showInterval);
   update(await bridge.getState());
   setInterval(render, 30_000);
 }

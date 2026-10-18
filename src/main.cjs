@@ -63,6 +63,15 @@ function poll() {
   return polling;
 }
 
+function setRefresh(seconds) {
+  if (!REFRESH_OPTIONS.includes(seconds)) return;
+  settings.refreshSeconds = seconds;
+  saveSettings();
+  schedulePolling();
+  rebuildTrayMenu();
+  window?.webContents.send("monitor:refresh-interval", seconds);
+}
+
 function schedulePolling() {
   clearInterval(pollTimer);
   pollTimer = setInterval(poll, settings.refreshSeconds * 1000);
@@ -82,8 +91,11 @@ function updateTrayTooltip() {
 
 ipcMain.handle("monitor:get-state", () => state);
 ipcMain.handle("monitor:refresh", () => poll().then(() => state));
-ipcMain.handle("monitor:get-settings", () => settings);
-ipcMain.handle("monitor:open-menu", () => buildMenu().popup({ window }));
+ipcMain.handle("monitor:get-settings", () => ({ ...settings, refreshOptions: REFRESH_OPTIONS }));
+ipcMain.handle("monitor:set-refresh", (_event, seconds) => {
+  setRefresh(seconds);
+  return settings.refreshSeconds;
+});
 ipcMain.handle("monitor:set-always-on-top", (_event, enabled) => {
   settings.alwaysOnTop = Boolean(enabled);
   saveSettings();
@@ -104,9 +116,8 @@ function toggleWidget() {
 
 const iconPath = path.join(__dirname, "..", "assets", "icon.png");
 
-// One menu serves the tray and the widget's ⋯ button, since WSLg shows no tray icon.
-function buildMenu() {
-  return Menu.buildFromTemplate([
+function rebuildTrayMenu() {
+  tray?.setContextMenu(Menu.buildFromTemplate([
     { label: "Show Claudex Monitor", click: showWidget },
     { label: "Refresh now", click: () => void poll() },
     {
@@ -115,11 +126,7 @@ function buildMenu() {
         label: seconds < 60 ? `${seconds} seconds` : `${seconds / 60} minute${seconds === 60 ? "" : "s"}`,
         type: "radio",
         checked: settings.refreshSeconds === seconds,
-        click: () => {
-          settings.refreshSeconds = seconds;
-          saveSettings();
-          schedulePolling();
-        }
+        click: () => setRefresh(seconds)
       }))
     },
     {
@@ -135,11 +142,7 @@ function buildMenu() {
     },
     { type: "separator" },
     { label: "Quit", click: () => { quitting = true; app.quit(); } }
-  ]);
-}
-
-function rebuildTrayMenu() {
-  tray?.setContextMenu(buildMenu());
+  ]));
 }
 
 function createWidget() {
