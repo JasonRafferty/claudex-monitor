@@ -109,21 +109,7 @@ function toggleWidget() {
   else showWidget();
 }
 
-// 16×16 tray glyph drawn in code: two bars, Claude orange over Codex green.
-function trayIcon() {
-  const size = 16;
-  const pixels = Buffer.alloc(size * size * 4);
-  const paint = (x0, x1, y0, y1, [r, g, b]) => {
-    for (let y = y0; y < y1; y += 1) {
-      for (let x = x0; x < x1; x += 1) {
-        pixels.set([b, g, r, 255], (y * size + x) * 4);
-      }
-    }
-  };
-  paint(2, 14, 3, 7, [217, 119, 87]);
-  paint(2, 14, 9, 13, [146, 216, 188]);
-  return nativeImage.createFromBitmap(pixels, { width: size, height: size });
-}
+const iconPath = path.join(__dirname, "..", "assets", "icon.png");
 
 function rebuildTrayMenu() {
   tray?.setContextMenu(Menu.buildFromTemplate([
@@ -155,6 +141,7 @@ function createWidget() {
     transparent: true,
     hasShadow: true,
     title: "Claudex Monitor",
+    icon: iconPath,
     alwaysOnTop: settings.alwaysOnTop,
     autoHideMenuBar: true,
     backgroundColor: "#00000000",
@@ -173,7 +160,7 @@ function createWidget() {
     }
   });
 
-  tray = new Tray(trayIcon());
+  tray = new Tray(nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 }));
   tray.setToolTip("Claudex Monitor");
   tray.on("click", showWidget);
   rebuildTrayMenu();

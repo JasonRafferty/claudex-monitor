@@ -1,3 +1,5 @@
+<img src="assets/icon.png" width="72" align="right" alt="">
+
 # Claudex Monitor
 
 A small desktop widget that shows your **Claude Code** and **Codex** usage limits side by side.
@@ -19,6 +21,8 @@ npm start
 ```
 
 Run `npm run check` to print the numbers in the terminal instead.
+
+**Windows (WSL):** run `bash scripts/install-windows-shortcut.sh` once to put a **Claudex Monitor** icon on your desktop.
 
 ## How it works
 
