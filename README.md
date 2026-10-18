@@ -9,6 +9,7 @@ A small desktop widget that shows your **Claude Code** and **Codex** usage limit
 - 5-hour and weekly usage for both, with reset countdowns
 - The tick on each bar shows how much of the window has passed. If the bar is past the tick, you're using it up early
 - Bars turn amber at 70% and red at 90%
+- Compact mode (the button next to refresh) shrinks it to one 5-hour bar per agent
 - The light top left is green when both are up to date, amber when showing old figures, red when a source fails
 - Stays on top, lives in the tray, the dropdown at the top sets how often it refreshes, and **Ctrl+Alt+M** shows or hides it
 

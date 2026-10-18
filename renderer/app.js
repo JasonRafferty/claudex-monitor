@@ -4,6 +4,8 @@ let latest = null;
 const els = {
   led: document.getElementById("led"),
   pin: document.getElementById("pin"),
+  compact: document.getElementById("compact"),
+  deck: document.getElementById("deck"),
   refresh: document.getElementById("refresh-now"),
   interval: document.getElementById("interval"),
   intervalValue: document.getElementById("interval-value"),
@@ -29,6 +31,7 @@ function showInterval(seconds) {
 
 function setDropdownOpen(open) {
   els.intervalList.hidden = !open;
+  fitWindow();
   els.interval.setAttribute("aria-expanded", String(open));
   if (open) (els.intervalList.querySelector('[aria-selected="true"]') ?? els.intervalList.firstElementChild).focus();
 }
@@ -116,6 +119,7 @@ function renderRow(window, now) {
   const elapsed = elapsedPercent(window, now);
   const row = document.createElement("div");
   row.className = `row ${level(percent)}`;
+  row.dataset.window = window.id;
 
   const label = document.createElement("span");
   label.className = "row-label";
@@ -171,11 +175,28 @@ function render() {
   renderProvider("claude", latest.claude, now);
   renderProvider("codex", latest.codex, now);
   renderLed();
+  fitWindow();
 }
 
 function update(state) {
   latest = state;
   render();
+}
+
+// Sizes the window to its content; an open dropdown may need more room than compact mode has.
+function fitWindow() {
+  const last = els.deck.querySelector(".provider:last-of-type");
+  let height = last.getBoundingClientRect().bottom + parseFloat(getComputedStyle(els.deck).paddingBottom);
+  if (!els.intervalList.hidden) height = Math.max(height, els.intervalList.getBoundingClientRect().bottom + 12);
+  void bridge.setHeight(Math.ceil(height));
+}
+
+function setCompact(enabled) {
+  els.deck.classList.toggle("compact", enabled);
+  els.compact.setAttribute("aria-pressed", String(enabled));
+  els.compact.title = enabled ? "Full view" : "Compact mode";
+  els.compact.setAttribute("aria-label", els.compact.title);
+  fitWindow();
 }
 
 function setPinned(enabled) {
@@ -186,9 +207,13 @@ function setPinned(enabled) {
 async function init() {
   const settings = await bridge.getSettings();
   setPinned(settings.alwaysOnTop);
+  setCompact(settings.compact);
   buildIntervalList(settings.refreshOptions);
   showInterval(settings.refreshSeconds);
 
+  els.compact.addEventListener("click", async () => {
+    setCompact(await bridge.setCompact(els.compact.getAttribute("aria-pressed") !== "true"));
+  });
   els.pin.addEventListener("click", async () => {
     setPinned(await bridge.setAlwaysOnTop(els.pin.getAttribute("aria-pressed") !== "true"));
   });

@@ -5,7 +5,8 @@ const { fetchClaudeUsage } = require("./claude.cjs");
 const { fetchCodexUsage } = require("./codex.cjs");
 
 const REFRESH_OPTIONS = [30, 60, 120, 300];
-const DEFAULT_SETTINGS = { refreshSeconds: 60, alwaysOnTop: true };
+const DEFAULT_SETTINGS = { refreshSeconds: 60, alwaysOnTop: true, compact: false };
+const WIDTH = 316;
 
 let window;
 let tray;
@@ -96,6 +97,16 @@ ipcMain.handle("monitor:set-refresh", (_event, seconds) => {
   setRefresh(seconds);
   return settings.refreshSeconds;
 });
+ipcMain.handle("monitor:set-compact", (_event, enabled) => {
+  settings.compact = Boolean(enabled);
+  saveSettings();
+  return settings.compact;
+});
+// The renderer measures its content and sizes the window to fit, so layouts never clip.
+ipcMain.handle("monitor:set-height", (_event, height) => {
+  const next = Math.round(Math.min(600, Math.max(60, Number(height) || 0)));
+  if (window && window.getContentSize()[1] !== next) window.setContentSize(WIDTH, next);
+});
 ipcMain.handle("monitor:set-always-on-top", (_event, enabled) => {
   settings.alwaysOnTop = Boolean(enabled);
   saveSettings();
@@ -148,8 +159,9 @@ function rebuildTrayMenu() {
 function createWidget() {
   loadSettings();
   window = new BrowserWindow({
-    width: 316,
-    height: 300,
+    width: WIDTH,
+    height: settings.compact ? 120 : 300,
+    useContentSize: true,
     resizable: false,
     frame: false,
     transparent: true,
