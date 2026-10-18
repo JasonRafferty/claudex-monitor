@@ -2,15 +2,10 @@ const bridge = window.claudexMonitor;
 let latest = null;
 
 const els = {
-  interval: document.getElementById("interval"),
+  led: document.getElementById("led"),
   pin: document.getElementById("pin"),
-  refresh: document.getElementById("refresh-now"),
-  updated: document.getElementById("updated")
+  refresh: document.getElementById("refresh-now")
 };
-
-function formatInterval(seconds) {
-  return seconds < 60 ? `${seconds}s` : `${seconds / 60}m`;
-}
 
 function formatDuration(ms) {
   const totalMinutes = Math.max(0, Math.ceil(ms / 60_000));
@@ -23,9 +18,9 @@ function formatDuration(ms) {
 }
 
 function resetLabel(resetsAt, now) {
-  if (!resetsAt) return "Reset time unavailable";
+  if (!resetsAt) return "";
   const remaining = resetsAt - now;
-  return remaining <= 0 ? "Resetting now" : `Resets in ${formatDuration(remaining)}`;
+  return remaining <= 0 ? "resetting now" : `resets in ${formatDuration(remaining)}`;
 }
 
 // Share of the window already elapsed; used to show whether usage is ahead of pace.
@@ -45,9 +40,8 @@ function renderProvider(id, source, now) {
   const section = document.getElementById(id);
   section.querySelector(".plan").textContent = source.plan ? source.plan : "";
   const status = section.querySelector(".status");
-  status.textContent = source.status === "loading" ? "Loading…" : source.error ?? "";
+  status.textContent = source.error ?? "";
   status.title = source.error ?? "";
-  status.className = `status ${source.status}`;
 
   const rows = section.querySelector(".rows");
   rows.replaceChildren(...source.windows.map((window) => renderRow(window, now)));
@@ -63,35 +57,48 @@ function renderRow(window, now) {
   label.className = "row-label";
   label.textContent = window.label;
 
-  const value = document.createElement("strong");
+  const reset = document.createElement("span");
+  reset.className = "row-reset";
+  reset.textContent = resetLabel(window.resetsAt, now);
+
+  const value = document.createElement("span");
   value.className = "row-value";
   value.innerHTML = `${Math.round(window.usedPercent)}<small>%</small>`;
 
-  const bar = document.createElement("div");
-  bar.className = "bar";
-  bar.setAttribute("role", "progressbar");
-  bar.setAttribute("aria-label", `${window.label} used`);
-  bar.setAttribute("aria-valuemin", "0");
-  bar.setAttribute("aria-valuemax", "100");
-  bar.setAttribute("aria-valuenow", String(Math.round(percent)));
+  const meter = document.createElement("div");
+  meter.className = "meter";
+  meter.setAttribute("role", "progressbar");
+  meter.setAttribute("aria-label", `${window.label} used`);
+  meter.setAttribute("aria-valuemin", "0");
+  meter.setAttribute("aria-valuemax", "100");
+  meter.setAttribute("aria-valuenow", String(Math.round(percent)));
   const fill = document.createElement("span");
   fill.className = "fill";
   fill.style.width = `${percent}%`;
-  bar.append(fill);
+  meter.append(fill);
   if (elapsed !== null) {
     const marker = document.createElement("span");
     marker.className = "pace";
     marker.style.left = `${elapsed}%`;
     marker.title = `${Math.round(elapsed)}% of the window has passed`;
-    bar.append(marker);
+    meter.append(marker);
   }
 
-  const reset = document.createElement("span");
-  reset.className = "row-reset";
-  reset.textContent = resetLabel(window.resetsAt, now);
-
-  row.append(label, bar, value, reset);
+  row.append(label, reset, value, meter);
   return row;
+}
+
+// The LED sums up both providers: green when fresh, amber when showing old figures, red when empty.
+function renderLed() {
+  const statuses = [latest.claude.status, latest.codex.status];
+  const state = statuses.includes("error") ? "error"
+    : statuses.includes("stale") ? "stale"
+    : statuses.every((status) => status === "ok") ? "ok" : "";
+  els.led.className = `led ${state}`;
+  els.led.title = latest.updatedAt
+    ? `Updated ${new Date(latest.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+    : "Loading…";
+  els.led.setAttribute("aria-label", els.led.title);
 }
 
 function render() {
@@ -99,9 +106,7 @@ function render() {
   const now = Date.now();
   renderProvider("claude", latest.claude, now);
   renderProvider("codex", latest.codex, now);
-  els.updated.textContent = latest.updatedAt
-    ? `Updated ${new Date(latest.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-    : "Loading…";
+  renderLed();
 }
 
 function update(state) {
@@ -110,28 +115,15 @@ function update(state) {
 }
 
 function setPinned(enabled) {
-  els.pin.classList.toggle("pinned", enabled);
   els.pin.setAttribute("aria-pressed", String(enabled));
   els.pin.title = enabled ? "Always on top" : "Keep on top";
 }
 
 async function init() {
-  const settings = await bridge.getSettings();
-  els.interval.replaceChildren(...settings.refreshOptions.map((seconds) => {
-    const option = document.createElement("option");
-    option.value = String(seconds);
-    option.textContent = formatInterval(seconds);
-    option.selected = seconds === settings.refreshSeconds;
-    return option;
-  }));
-  setPinned(settings.alwaysOnTop);
+  setPinned((await bridge.getSettings()).alwaysOnTop);
 
-  els.interval.addEventListener("change", async () => {
-    const seconds = await bridge.setRefresh(Number(els.interval.value));
-    els.interval.value = String(seconds);
-  });
   els.pin.addEventListener("click", async () => {
-    setPinned(await bridge.setAlwaysOnTop(!els.pin.classList.contains("pinned")));
+    setPinned(await bridge.setAlwaysOnTop(els.pin.getAttribute("aria-pressed") !== "true"));
   });
   els.refresh.addEventListener("click", async () => {
     els.refresh.classList.add("spinning");

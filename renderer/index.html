@@ -7,29 +7,25 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="widget" aria-label="Claude and Codex usage">
-    <header class="banner">
-      <span class="brand" aria-hidden="true">◐</span>
-      <span class="title">Claudex <span>Monitor</span></span>
-      <button id="refresh-now" class="icon-button" type="button" aria-label="Refresh now" title="Refresh now">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 18 17"/></svg>
+  <main id="deck" class="deck" aria-label="Claude and Codex usage">
+    <header class="top">
+      <span id="led" class="led" role="status"></span>
+      <span class="name">Claudex Monitor</span>
+      <button id="refresh-now" class="ctl" type="button" aria-label="Refresh now" title="Refresh now">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 3v3.5H10M2.5 13V9.5H6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.6 6a4.8 4.8 0 0 1 9-1.2l.9 1.7M12.4 10a4.8 4.8 0 0 1-9 1.2l-.9-1.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       </button>
-      <label class="refresh-control" title="Refresh interval">
-        <select id="interval" aria-label="Refresh interval"></select>
-      </label>
-      <button id="pin" class="icon-button pin" type="button" aria-pressed="true" aria-label="Always on top" title="Always on top">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3 6 0-1 6 4 4v2H6v-2l4-4-1-6ZM12 15v6"/></svg>
+      <button id="pin" class="ctl" type="button" aria-pressed="true" aria-label="Always on top" title="Always on top">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 1.5h4l-.7 4 2.7 2.7V10H4V8.2l2.7-2.7zM8 10v4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </header>
     <section class="provider claude" id="claude" aria-label="Claude usage">
-      <div class="provider-head"><span class="dot" aria-hidden="true"></span><h2>Claude</h2><span class="plan"></span><span class="status" role="status"></span></div>
+      <div class="provider-head"><h2>Claude</h2><span class="plan"></span><span class="status"></span></div>
       <div class="rows"></div>
     </section>
     <section class="provider codex" id="codex" aria-label="Codex usage">
-      <div class="provider-head"><span class="dot" aria-hidden="true"></span><h2>Codex</h2><span class="plan"></span><span class="status" role="status"></span></div>
+      <div class="provider-head"><h2>Codex</h2><span class="plan"></span><span class="status"></span></div>
       <div class="rows"></div>
     </section>
-    <footer class="footer"><span id="updated">Loading…</span><span class="hint">Ctrl+Alt+M</span></footer>
   </main>
   <script src="app.js"></script>
 </body>

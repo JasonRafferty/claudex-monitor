@@ -82,15 +82,7 @@ function updateTrayTooltip() {
 
 ipcMain.handle("monitor:get-state", () => state);
 ipcMain.handle("monitor:refresh", () => poll().then(() => state));
-ipcMain.handle("monitor:get-settings", () => ({ ...settings, refreshOptions: REFRESH_OPTIONS }));
-ipcMain.handle("monitor:set-refresh", (_event, seconds) => {
-  if (REFRESH_OPTIONS.includes(seconds)) {
-    settings.refreshSeconds = seconds;
-    saveSettings();
-    schedulePolling();
-  }
-  return settings.refreshSeconds;
-});
+ipcMain.handle("monitor:get-settings", () => settings);
 ipcMain.handle("monitor:set-always-on-top", (_event, enabled) => {
   settings.alwaysOnTop = Boolean(enabled);
   saveSettings();
@@ -116,6 +108,19 @@ function rebuildTrayMenu() {
     { label: "Show Claudex Monitor", click: showWidget },
     { label: "Refresh now", click: () => void poll() },
     {
+      label: "Refresh every",
+      submenu: REFRESH_OPTIONS.map((seconds) => ({
+        label: seconds < 60 ? `${seconds} seconds` : `${seconds / 60} minute${seconds === 60 ? "" : "s"}`,
+        type: "radio",
+        checked: settings.refreshSeconds === seconds,
+        click: () => {
+          settings.refreshSeconds = seconds;
+          saveSettings();
+          schedulePolling();
+        }
+      }))
+    },
+    {
       label: "Always on top",
       type: "checkbox",
       checked: settings.alwaysOnTop,
@@ -134,12 +139,12 @@ function rebuildTrayMenu() {
 function createWidget() {
   loadSettings();
   window = new BrowserWindow({
-    width: 360,
-    height: 318,
+    width: 316,
+    height: 300,
     resizable: false,
     frame: false,
     transparent: true,
-    hasShadow: true,
+    hasShadow: false,
     title: "Claudex Monitor",
     icon: iconPath,
     alwaysOnTop: settings.alwaysOnTop,
